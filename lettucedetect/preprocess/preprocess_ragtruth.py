@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Literal
 
+
 @dataclass
 class RagTruthSample:
     prompt: str
@@ -28,6 +29,7 @@ class RagTruthSample:
             split=json_dict["split"],
         )
 
+
 @dataclass
 class RagTruthData:
     samples: list[RagTruthSample]
@@ -44,18 +46,24 @@ class RagTruthData:
 
 def load_data(input_dir: Path) -> tuple[list[dict], list[dict]]:
     """Load the RAG truth data.
-    
+
     :param input_dir: Path to the input directory.
     """
-    responses = [json.loads(line) for line in (input_dir / "response.jsonl").read_text().splitlines()]
-    sources = [json.loads(line) for line in (input_dir / "source_info.jsonl").read_text().splitlines()]
+    responses = [
+        json.loads(line)
+        for line in (input_dir / "response.jsonl").read_text().splitlines()
+    ]
+    sources = [
+        json.loads(line)
+        for line in (input_dir / "source_info.jsonl").read_text().splitlines()
+    ]
 
     return responses, sources
 
 
 def create_sample(response: dict, source: dict) -> RagTruthSample:
     """Create a sample from the RAG truth data.
-    
+
     :param response: The response from the RAG truth data.
     :param source: The source from the RAG truth data.
     """
@@ -67,20 +75,22 @@ def create_sample(response: dict, source: dict) -> RagTruthSample:
     labels = []
 
     for label in response["labels"]:
-        start_char = label['start']
-        end_char = label['end']
-        labels.append({
-            "start": start_char,
-            "end": end_char,
-            "label": label['label_type'],
-        })
+        start_char = label["start"]
+        end_char = label["end"]
+        labels.append(
+            {
+                "start": start_char,
+                "end": end_char,
+                "label": label["label_type"],
+            }
+        )
 
     return RagTruthSample(prompt, answer, labels, split)
 
 
 def main(input_dir: Path, output_dir: Path):
     """Preprocess the RAG truth data.
-    
+
     :param input_dir: Path to the input directory.
     :param output_dir: Path to the output directory.
     """
@@ -97,7 +107,9 @@ def main(input_dir: Path, output_dir: Path):
         sample = create_sample(response, sources_by_id[response["source_id"]])
         rag_truth_data.samples.append(sample)
 
-    (output_dir / "ragtruth_data.json").write_text(json.dumps(rag_truth_data.to_json(), indent=4))
+    (output_dir / "ragtruth_data.json").write_text(
+        json.dumps(rag_truth_data.to_json(), indent=4)
+    )
 
 
 if __name__ == "__main__":
