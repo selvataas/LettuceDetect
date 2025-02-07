@@ -49,9 +49,9 @@ if __name__ == "__main__":
         f"Training samples: {len(train_dataset)}, Test samples: {len(test_dataset)}\n"
     )
 
-    for epoch in range(3):
+    for epoch in range(6):
         epoch_start = time.time()
-        print(f"\nEpoch {epoch + 1}/3")
+        print(f"\nEpoch {epoch + 1}/6")
 
         # Training
         model.train()
