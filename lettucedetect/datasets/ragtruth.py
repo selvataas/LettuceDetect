@@ -23,7 +23,7 @@ class RagTruthDataset(Dataset):
         self.tokenizer = tokenizer
         self.max_length = max_length
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.samples)
 
     def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
