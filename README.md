@@ -25,27 +25,26 @@ pip install -e .
 ```python
 from lettucedetect.models.inference import HallucinationDetector
 
-detector = HallucinationDetector(
-    method="transformer", 
-    model_path="path/to/model"
-)
+# Initialize the detector with the transformer-based approach.
+detector = HallucinationDetector(method="transformer", model_path="KRLabsOrg/lettucedect-base-modernbert-en-v1")
 
-context = """
-Question: What is the capital of France? What is its population?
 
-Context: France is a country in Europe. The capital of France is Paris. 
-The population of France is 67 million.
+context = """Briefly answer the following question:
+What is the capital of France? What is the population of France?
+
+Bear in mind that your response should be strictly based on the following three passages:
+passage 1: France is a country in Europe. The capital of France is Paris. The population of France is 67 million.
+
+output:
 """
 
-answer = "The capital of France is Paris. The population is 69 million people."
+answer = "The capital of France is Paris. The population of France is 69 million."
 
-# Get span-level predictions
-spans = detector.predict(context, answer, output_format="spans")
-print("Hallucinated spans:", spans)
-# Output: [{'text': '69 million people', 'start': 39, 'end': 54, 'confidence': 0.92}]
+# Get span-level predictions indicating which parts of the answer are considered hallucinated.
+predictions = detector.predict(context, answer, output_format="spans")
+print("Predictions:", predictions)
 
-# Get token-level predictions
-tokens = detector.predict(context, answer, output_format="tokens")
+# Predictions: [{'start': 31, 'end': 71, 'confidence': 0.9944414496421814, 'text': ' The population of France is 69 million.'}]
 ```
 
 ## Training a Model
