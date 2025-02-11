@@ -69,7 +69,7 @@ class TransformerDetector(BaseDetector):
         answer_start_token = 1 + len(prompt_tokens) + 1  # [CLS] + prompt tokens + [SEP]
 
         # Create a label tensor: mark tokens before answer as -100 (ignored) and answer tokens as 0.
-        labels = torch.full_like(encoding.input_ids[0], -100)
+        labels = torch.full_like(encoding.input_ids[0], -100, device=self.device)
         labels[answer_start_token:] = 0
 
         # Move encoding to the device.

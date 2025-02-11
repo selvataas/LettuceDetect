@@ -3,6 +3,8 @@ from torch.nn import Module
 from torch.utils.data import DataLoader
 from sklearn.metrics import precision_recall_fscore_support, classification_report
 from tqdm.auto import tqdm
+from lettucedetect.models.inference import HallucinationDetector
+from lettucedetect.datasets.ragtruth import RagTruthSample
 
 
 def evaluate_model(
@@ -13,8 +15,11 @@ def evaluate_model(
 ) -> dict[str, dict[str, float]]:
     """Evaluate a model for hallucination detection.
 
-    Returns:
-        Dict containing metrics for both classes:
+    :param model: The model to evaluate.
+    :param dataloader: The data loader to use for evaluation.
+    :param device: The device to use for evaluation.
+    :param verbose: If True, print the evaluation metrics.
+    :return: A dictionary containing the evaluation metrics.
         {
             "supported": {"precision": float, "recall": float, "f1": float},
             "hallucinated": {"precision": float, "recall": float, "f1": float}
@@ -70,7 +75,11 @@ def evaluate_model(
 
 
 def print_metrics(metrics: dict[str, dict[str, float]]) -> None:
-    """Print evaluation metrics in a readable format."""
+    """Print evaluation metrics in a readable format.
+
+    :param metrics: A dictionary containing the evaluation metrics.
+    :return: None
+    """
     print("\nEvaluation Results:")
     print("\nHallucination Detection (Class 1):")
     print(f"  Precision: {metrics['hallucinated']['precision']:.4f}")
@@ -95,14 +104,12 @@ def evaluate_model_example_level(
     For each example, if any token is marked as hallucinated (label=1),
     then the whole example is considered hallucinated. Otherwise, it is supported.
 
-    Args:
-        model: The model to evaluate.
-        dataloader: DataLoader providing the evaluation batches.
-        device: Device on which to perform evaluation.
-        verbose: If True, prints a detailed classification report.
+    :param model: The model to evaluate.
+    :param dataloader: DataLoader providing the evaluation batches.
+    :param device: Device on which to perform evaluation.
+    :param verbose: If True, prints a detailed classification report.
 
-    Returns:
-        A dict containing example-level metrics:
+    :return: A dict containing example-level metrics:
         {
             "supported": {"precision": float, "recall": float, "f1": float},
             "hallucinated": {"precision": float, "recall": float, "f1": float}
@@ -181,17 +188,60 @@ def evaluate_model_example_level(
     return results
 
 
-def print_example_level_metrics(metrics: dict[str, dict[str, float]]) -> None:
+def evaluate_detector_char_level(
+    detector: HallucinationDetector, samples: list[RagTruthSample]
+) -> dict[str, float]:
     """
-    Print example-level evaluation metrics in a readable format.
-    """
-    print("\nExample-Level Evaluation Results:")
-    print("\nHallucination Detection (Example Level) - Class 1:")
-    print(f"  Precision: {metrics['hallucinated']['precision']:.4f}")
-    print(f"  Recall: {metrics['hallucinated']['recall']:.4f}")
-    print(f"  F1: {metrics['hallucinated']['f1']:.4f}")
+    Evaluate the HallucinationDetector at the character level.
 
-    print("\nSupported Content (Example Level) - Class 0:")
-    print(f"  Precision: {metrics['supported']['precision']:.4f}")
-    print(f"  Recall: {metrics['supported']['recall']:.4f}")
-    print(f"  F1: {metrics['supported']['f1']:.4f}")
+    This function assumes that each sample is a dictionary containing:
+      - "prompt": the prompt text.
+      - "answer": the answer text.
+      - "gold_spans": a list of dictionaries where each dictionary has "start" and "end" keys
+                      indicating the character indices of the gold (human-labeled) span.
+
+    It uses the detector (which should have been initialized with the appropriate model)
+    to obtain predicted spans, compares those spans with the gold spans, and computes global
+    precision, recall, and F1 based on character overlap.
+
+    :param detector: The detector to evaluate.
+    :param samples: A list of samples to evaluate.
+    :return: A dictionary with global metrics: {"char_precision": ..., "char_recall": ..., "char_f1": ...}
+    """
+    total_overlap = 0
+    total_predicted = 0
+    total_gold = 0
+
+    for sample in tqdm(samples, desc="Evaluating", leave=False):
+        prompt = sample.prompt
+        answer = sample.answer
+        gold_spans = sample.labels
+        predicted_spans = detector.predict(prompt, answer, output_format="spans")
+
+        # Compute total predicted span length for this sample.
+        sample_predicted_length = sum(
+            pred["end"] - pred["start"] for pred in predicted_spans
+        )
+        total_predicted += sample_predicted_length
+
+        # Compute total gold span length once for this sample.
+        sample_gold_length = sum(gold["end"] - gold["start"] for gold in gold_spans)
+        total_gold += sample_gold_length
+
+        # Now, compute the overlap between each predicted span and each gold span.
+        sample_overlap = 0
+        for pred in predicted_spans:
+            for gold in gold_spans:
+                overlap_start = max(pred["start"], gold["start"])
+                overlap_end = min(pred["end"], gold["end"])
+                if overlap_end > overlap_start:
+                    sample_overlap += overlap_end - overlap_start
+        total_overlap += sample_overlap
+
+    precision = total_overlap / total_predicted if total_predicted > 0 else 0
+    recall = total_overlap / total_gold if total_gold > 0 else 0
+    f1 = (
+        2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
+    )
+
+    return {"precision": precision, "recall": recall, "f1": f1}
