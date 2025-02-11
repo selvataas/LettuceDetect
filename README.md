@@ -60,7 +60,7 @@ The results on the example-level can be seen in the table below.
   <img src="assets/example_level_lettucedetect.png" alt="Example-level Results" width="800"/>
 </p>
 
-Our model consistently achieves the highest scores across all data types and overall. We beat the previous best model (Finetuned LLAMA-2-13B) while being significantly smaller and faster (our models are 150M and 396M parameters, respectively, and be able to process 30-60 examples per second on a single A100 GPU). The other non-prompt based model is [Luna](https://aclanthology.org/2025.coling-industry.34.pdf) which is also a token-level model but uses a DeBERTA-large encoder model. Our model is overall better that the Luna architecture (65.4 vs 79.22 F1 score on the _overall_ data type).
+Our model consistently achieves the highest scores across all data types and overall (**lettucedetect-large-v1**). We beat the previous best model (Finetuned LLAMA-2-13B) while being significantly smaller and faster (our models are 150M and 396M parameters, respectively, and be able to process 30-60 examples per second on a single A100 GPU). The other non-prompt based model is [Luna](https://aclanthology.org/2025.coling-industry.34.pdf) which is also a token-level model but uses a DeBERTA-large encoder model. Our model is overall better that the Luna architecture (65.4 vs 79.22 F1 score on the _overall_ data type).
 
 The span-level results can be seen in the table below.
 
