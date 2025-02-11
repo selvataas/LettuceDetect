@@ -216,7 +216,7 @@ def evaluate_detector_char_level(
         prompt = sample.prompt
         answer = sample.answer
         gold_spans = sample.labels
-        predicted_spans = detector.predict(prompt, answer, output_format="spans")
+        predicted_spans = detector.predict_prompt(prompt, answer, output_format="spans")
 
         # Compute total predicted span length for this sample.
         sample_predicted_length = sum(

@@ -1,6 +1,22 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from abc import ABC, abstractmethod
+from lettucedetect.datasets.ragtruth import RagTruthDataset
+
+PROMPT_QA = """
+Briefly answer the following question:
+{question}
+Bear in mind that your response should be strictly based on the following {num_passages} passages:
+{context}
+In case the passages do not contain the necessary information to answer the question, please reply with: "Unable to answer based on given passages."
+output:
+"""
+
+PROMPT_SUMMARY = """
+Summarize the following text:
+{text}
+output:
+"""
 
 
 class BaseDetector(ABC):
@@ -36,55 +52,52 @@ class TransformerDetector(BaseDetector):
         self.model.to(self.device)
         self.model.eval()
 
-    def predict(self, context: str, answer: str, output_format: str = "tokens") -> list:
+    def _form_prompt(self, context: list[str], question: str | None) -> str:
+        """Form a prompt from the provided context and question. We use different prompts for summary and QA tasks.
+
+        :param context: A list of context strings.
+        :param question: The question string.
+        :return: The formatted prompt.
         """
-        Performs inference and returns either token-level predictions or grouped spans.
-        This version mimics the dataset's preprocessing: it tokenizes the prompt and answer,
-        computes the answer start token (based on the prompt length), masks context tokens,
-        and then processes only answer tokens.
+        context_str = "\n".join(
+            [f"passage {i + 1}: {passage}" for i, passage in enumerate(context)]
+        )
+        if question is None:
+            return PROMPT_SUMMARY.format(text=context_str)
+        else:
+            return PROMPT_QA.format(
+                question=question, num_passages=len(context), context=context_str
+            )
+
+    def _predict(
+        self, context: str, answer: str, output_format: str = "tokens"
+    ) -> list:
+        """Predict hallucination tokens or spans from the provided context and answer.
 
         :param context: The context string.
         :param answer: The answer string.
-        :param output_format: "tokens" or "spans".
-
-        :return: If "tokens", a list of integer predictions for each token.
-                 If "spans", a list of dictionaries, each with keys "label", "start", "end", "confidence", and "text".
+        :param output_format: "tokens" to return token-level predictions, or "spans" to return grouped spans.
         """
-        # Tokenize context and answer with offsets.
-        encoding = self.tokenizer(
-            context,
-            answer,
-            truncation=True,
-            max_length=self.max_length,
-            return_offsets_mapping=True,
-            return_tensors="pt",
-            add_special_tokens=True,
+        # Use the shared tokenization logic from RagTruthDataset
+        encoding, labels, offsets, answer_start_token = (
+            RagTruthDataset.prepare_tokenized_input(
+                self.tokenizer, context, answer, self.max_length
+            )
         )
-        # Save offset mapping for later use.
-        offsets = encoding.pop("offset_mapping")[0]  # shape: (seq_length, 2)
-
-        # Compute answer start token index:
-        prompt_tokens = self.tokenizer.encode(context, add_special_tokens=False)
-        # Tokenization adds [CLS] at start and [SEP] after the prompt:
-        answer_start_token = 1 + len(prompt_tokens) + 1  # [CLS] + prompt tokens + [SEP]
 
         # Create a label tensor: mark tokens before answer as -100 (ignored) and answer tokens as 0.
         labels = torch.full_like(encoding.input_ids[0], -100, device=self.device)
         labels[answer_start_token:] = 0
-
-        # Move encoding to the device.
+        # Move encoding to the device
         encoding = {key: value.to(self.device) for key, value in encoding.items()}
+        labels = torch.tensor(labels, device=self.device)
 
-        # Run model inference.
+        # Run model inference
         with torch.no_grad():
             outputs = self.model(**encoding)
-        logits = outputs.logits  # shape: (1, seq_length, num_classes)
-
-        # Compute predictions and probabilities.
-        token_preds = torch.argmax(logits, dim=-1)[0]  # shape: (seq_length,)
-        probabilities = torch.softmax(logits, dim=-1)[
-            0
-        ]  # shape: (seq_length, num_classes)
+        logits = outputs.logits
+        token_preds = torch.argmax(logits, dim=-1)[0]
+        probabilities = torch.softmax(logits, dim=-1)[0]
 
         # Mask out predictions for context tokens.
         token_preds = torch.where(labels == -100, labels, token_preds)
@@ -153,6 +166,35 @@ class TransformerDetector(BaseDetector):
         else:
             raise ValueError("Invalid output_format. Use 'tokens' or 'spans'.")
 
+    def predict_prompt(
+        self, prompt: str, answer: str, output_format: str = "tokens"
+    ) -> list:
+        """Predict hallucination tokens or spans from the provided prompt and answer.
+
+        :param prompt: The prompt string.
+        :param answer: The answer string.
+        :param output_format: "tokens" to return token-level predictions, or "spans" to return grouped spans.
+        """
+        return self._predict(prompt, answer, output_format)
+
+    def predict(
+        self,
+        context: list[str],
+        answer: str,
+        question: str | None = None,
+        output_format: str = "tokens",
+    ) -> list:
+        """Predict hallucination tokens or spans from the provided context, answer, and question.
+        This is a useful interface when we don't want to predict a specific prompt, but rather we have a list of contexts, answers, and questions. Useful to interface with RAG systems.
+
+        :param context: A list of context strings.
+        :param answer: The answer string.
+        :param question: The question string.
+        :param output_format: "tokens" to return token-level predictions, or "spans" to return grouped spans.
+        """
+        prompt = self._form_prompt(context, question)
+        return self._predict(prompt, answer, output_format)
+
 
 class HallucinationDetector:
     def __init__(self, method: str = "transformer", **kwargs):
@@ -167,5 +209,28 @@ class HallucinationDetector:
         else:
             raise ValueError("Unsupported method. Choose 'transformer'.")
 
-    def predict(self, context: str, answer: str, output_format: str = "tokens") -> list:
-        return self.detector.predict(context, answer, output_format)
+    def predict(
+        self,
+        context: list[str],
+        answer: str,
+        question: str | None = None,
+        output_format: str = "tokens",
+    ) -> list:
+        """Predict hallucination tokens or spans from the provided context, answer, and question.
+        This is a useful interface when we don't want to predict a specific prompt, but rather we have a list of contexts, answers, and questions. Useful to interface with RAG systems.
+
+        :param context: A list of context strings.
+        :param answer: The answer string.
+        :param question: The question string.
+        """
+        return self.detector.predict(context, answer, question, output_format)
+
+    def predict_prompt(
+        self, prompt: str, answer: str, output_format: str = "tokens"
+    ) -> list:
+        """Predict hallucination tokens or spans from the provided prompt and answer.
+
+        :param prompt: The prompt string.
+        :param answer: The answer string.
+        """
+        return self.detector.predict_prompt(prompt, answer, output_format)

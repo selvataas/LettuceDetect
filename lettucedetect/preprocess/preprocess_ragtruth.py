@@ -11,6 +11,7 @@ class RagTruthSample:
     answer: str
     labels: list[dict]
     split: Literal["train", "dev", "test"]
+    task_type: str
 
     def to_json(self) -> dict:
         return {
@@ -18,6 +19,7 @@ class RagTruthSample:
             "answer": self.answer,
             "labels": self.labels,
             "split": self.split,
+            "task_type": self.task_type,
         }
 
     @classmethod
@@ -27,6 +29,7 @@ class RagTruthSample:
             answer=json_dict["answer"],
             labels=json_dict["labels"],
             split=json_dict["split"],
+            task_type=json_dict["task_type"],
         )
 
 
@@ -71,7 +74,7 @@ def create_sample(response: dict, source: dict) -> RagTruthSample:
 
     answer = response["response"]
     split = response["split"]
-
+    task_type = source["task_type"]
     labels = []
 
     for label in response["labels"]:
@@ -85,7 +88,7 @@ def create_sample(response: dict, source: dict) -> RagTruthSample:
             }
         )
 
-    return RagTruthSample(prompt, answer, labels, split)
+    return RagTruthSample(prompt, answer, labels, split, task_type)
 
 
 def main(input_dir: Path, output_dir: Path):
