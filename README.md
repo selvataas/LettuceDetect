@@ -1,7 +1,7 @@
 # LettuceDetect 🥬🔍
 
 <p align="center">
-  <img src="assets/lettuce_detective.png" alt="LettuceDetect Logo" width="400"/>
+  <img src="https://github.com/KRLabsOrg/LettuceDetect/blob/main/assets/lettuce_detective.png?raw=true" alt="LettuceDetect Logo" width="400"/>
 </p>
 
 LettuceDetect is a hallucination detection tool that is designed to be used in RAG systems to help identify parts of the answer that are not supported by the given context. We trained and evaluated the model on the [RAGTruth](https://aclanthology.org/2024.acl-long.585/) (Niu et al., 2024) dataset.
