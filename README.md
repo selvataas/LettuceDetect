@@ -166,7 +166,13 @@ MIT License - see LICENSE file for details.
 TODO: its coming soon until that:
 
 ```bibtex
-@software{lettucedetect2024,
-  title = {LettuceDetect: A Tool for Detecting Hallucinations in AI-Generated Content},
-  author = {Kovacs, Adam},
+@software{Kovacs:2025,
+  author       = {Kovacs, Adam},
+  title        = {LettuceDetect},
+  month        = feb,
+  year         = 2025,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.14856505},
+  url          = {https://doi.org/10.5281/zenodo.14856505},
+}
 ```
