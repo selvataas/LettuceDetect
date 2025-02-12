@@ -23,8 +23,14 @@ Our models currently achieve **SOTA results** on the RAGTruth dataset. We releas
 
 ### Installation
 
+Install from the repository:
 ```bash
 pip install -e .
+```
+
+From pip:
+```bash
+pip install lettucedetect
 ```
 
 ### Quick Start
