@@ -29,6 +29,10 @@ pip install -e .
 
 ### Quick Start
 
+Check out our models published to Huggingface: 
+- lettucedetect-base: https://huggingface.co/KRLabsOrg/lettucedect-base-modernbert-en-v1
+- lettucedetect-large: https://huggingface.co/KRLabsOrg/lettucedect-large-modernbert-en-v1
+
 You can get started right away with just a few lines of code.
 
 ```python
