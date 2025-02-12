@@ -77,7 +77,7 @@ The other non-prompt based model is [Luna](https://aclanthology.org/2025.coling-
 The span-level results can be seen in the table below.
 
 <p align="center">
-  <img src="[assets/span_level_lettucedetect.png](https://github.com/KRLabsOrg/LettuceDetect/blob/main/assets/span_level_lettucedetect.png?raw=true)" alt="Span-level Results" width="800"/>
+  <img src="https://github.com/KRLabsOrg/LettuceDetect/blob/main/assets/span_level_lettucedetect.png?raw=true" alt="Span-level Results" width="800"/>
 </p>
 
 Our model achieves the best scores throughout each data-type and also overall, beating the previous best model (Finetuned LLAMA-2-13B) by a significant margin.
