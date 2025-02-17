@@ -157,6 +157,22 @@ The model can output predictions in two formats:
 [0, 0, 0, 1, 1, 0]  # 0: supported, 1: hallucinated
 ```
 
+## Streamlit Demo
+
+Check out the Streamlit demo to see the model in action.
+
+Install streamlit:
+
+```bash
+pip install streamlit
+```
+
+Run the demo:
+
+```bash
+streamlit run demo/streamlit_demo.py
+```
+
 ## License
 
 MIT License - see LICENSE file for details.
