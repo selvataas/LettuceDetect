@@ -103,7 +103,25 @@ class TransformerDetector(BaseDetector):
         token_preds = torch.where(labels == -100, labels, token_preds)
 
         if output_format == "tokens":
-            return token_preds.cpu().numpy().tolist()
+            # return token probabilities for each token (with the tokens as well, if not -100)
+            token_probs = []
+            input_ids = encoding["input_ids"][
+                0
+            ]  # Get the input_ids tensor from the encoding dict
+            for i, (token, pred, prob) in enumerate(
+                zip(input_ids, token_preds, probabilities)
+            ):
+                if not labels[i].item() == -100:
+                    token_probs.append(
+                        {
+                            "token": self.tokenizer.decode([token]),
+                            "pred": pred.item(),
+                            "prob": prob[
+                                1
+                            ].item(),  # Get probability for class 1 (hallucination)
+                        }
+                    )
+            return token_probs
         elif output_format == "spans":
             # Compute the answer's character offset (the first token of the answer).
             if answer_start_token < offsets.size(0):

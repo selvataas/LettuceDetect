@@ -4,14 +4,20 @@
   <img src="https://github.com/KRLabsOrg/LettuceDetect/blob/main/assets/lettuce_detective.png?raw=true" alt="LettuceDetect Logo" width="400"/>
 </p>
 
-LettuceDetect is a hallucination detection tool that is designed to be used in RAG systems to help identify parts of the answer that are not supported by the given context. We trained and evaluated the model on the [RAGTruth](https://aclanthology.org/2024.acl-long.585/) (Niu et al., 2024) dataset.
+LettuceDetect is a lightweight and efficient tool for detecting hallucinations in Retrieval-Augmented Generation (RAG) systems. It identifies unsupported parts of an answer by comparing it to the provided context. The tool is trained and evaluated on the [RAGTruth](https://aclanthology.org/2024.acl-long.585/) dataset and leverages [ModernBERT](https://github.com/AnswerDotAI/ModernBERT) for long-context processing, making it ideal for tasks requiring extensive context windows.
 
-We trained a token-level model based on [ModernBERT](https://github.com/AnswerDotAI/ModernBERT). ModernBERT is a modern and fast transformer model that is specifically designed to have longer context windows which is crucial in hallucination detection systems because the model needs to see the context in which the answer is generated and the answer itself. This can be too long to handle with traditional encoder based models. Because of this, most models in the literature are based on longer context LLMs like GPT-4.
-Our models are inspired from the [Luna](https://aclanthology.org/2025.coling-industry.34/) paper which used a **DeBERTA-large** encoder model and similar token-level approach.
+Our models are inspired from the [Luna](https://aclanthology.org/2025.coling-industry.34/) paper which is an encoder-based model and uses a similar token-level approach.
 
-Our models currently achieve **SOTA results** on the RAGTruth dataset. We release the code, the model and the tool under the MIT license.
+## Highlights
 
-## Get going
+- LettuceDetect addresses two critical limitations of existing hallucination detection models:
+  - Context window constraints of traditional encoder-based methods
+  - Computational inefficiency of LLM-based approaches
+- Our models currently **outperforms** all other encoder-based and prompt-based models on the RAGTruth dataset and are significantly faster and smaller 
+- Achieves higher score than some fine-tuned LLMs e.g. LLAMA-2-13B presented in [RAGTruth](https://aclanthology.org/2024.acl-long.585/), coming up just short of the LLM fine-tuned in the [RAG-HAT paper](https://aclanthology.org/2024.emnlp-industry.113.pdf)
+- We release the code, the model and the tool under the **MIT license**
+
+## Get going  
 
 ### Features
 
@@ -60,9 +66,11 @@ print("Predictions:", predictions)
 # Predictions: [{'start': 31, 'end': 71, 'confidence': 0.9944414496421814, 'text': ' The population of France is 69 million.'}]
 ```
 
-## Details
+## Performance
 
-We evaluate our model on the test set of the [RAGTruth](https://aclanthology.org/2024.acl-long.585/) dataset. We evaluate both example-level (can we detect that a given answer contains hallucinations) and span-level (can we detect which parts of the answer are hallucinated).
+**Example level results**
+
+We evaluate our model on the test set of the [RAGTruth](https://aclanthology.org/2024.acl-long.585/) dataset. Our large model, **lettucedetect-large-v1**, achieves an overall F1 score of 79.22%, outperforming prompt-based methods like GPT-4 (63.4%) and encoder-based models like [Luna](https://aclanthology.org/2025.coling-industry.34.pdf) (65.4%). It also surpasses fine-tuned LLAMA-2-13B (78.7%) (presented in [RAGTruth](https://aclanthology.org/2024.acl-long.585/)) and is competitive with the SOTA fine-tuned LLAMA-3-8B (83.9%) (presented in the [RAG-HAT paper](https://aclanthology.org/2024.emnlp-industry.113.pdf)). Overall, **lettucedetect-large-v1** and **lettucedect-base-v1** are very performant models, while being very effective in inference settings.
 
 The results on the example-level can be seen in the table below.
 
@@ -70,19 +78,16 @@ The results on the example-level can be seen in the table below.
   <img src="https://github.com/KRLabsOrg/LettuceDetect/blob/main/assets/example_level_lettucedetect.png?raw=true" alt="Example-level Results" width="800"/>
 </p>
 
-Our model consistently achieves the highest scores across all data types and overall (**lettucedetect-large-v1**). We beat the previous best model (Finetuned LLAMA-2-13B) while being significantly smaller and faster (our models are 150M and 396M parameters, respectively, and able to process 30-60 examples per second on a single A100 GPU). 
+**Span-level results**
 
-The other non-prompt based model is [Luna](https://aclanthology.org/2025.coling-industry.34.pdf) which is also a token-level model but uses a DeBERTA-large encoder model. Our model is overall better that the Luna architecture (65.4 vs 79.22 F1 score on the _overall_ data type).
-
-The span-level results can be seen in the table below.
+At the span level, our model achieves the best scores across all data types, significantly outperforming previous models. The results can be seen in the table below. Note that here we don't compare to models, like [RAG-HAT](https://aclanthology.org/2024.emnlp-industry.113.pdf), since they have no span-level evaluation presented.
 
 <p align="center">
   <img src="https://github.com/KRLabsOrg/LettuceDetect/blob/main/assets/span_level_lettucedetect.png?raw=true" alt="Span-level Results" width="800"/>
 </p>
 
-Our model achieves the best scores throughout each data-type and also overall, beating the previous best model (Finetuned LLAMA-2-13B) by a significant margin.
 
-### How does it work?
+## How does it work?
 
 The model is a token-level model that predicts whether a token is hallucinated or not. The model is trained to predict the tokens that are hallucinated in the answer given the context and the question.
 
@@ -122,7 +127,8 @@ python scripts/train.py \
     --model_name answerdotai/ModernBERT-base \
     --output_dir outputs/hallucination_detector \
     --batch_size 4 \
-    --epochs 6
+    --epochs 6 \
+    --learning_rate 1e-5
 ```
 
 We trained our models for 6 epochs with a batch size of 8 on a single A100 GPU.
@@ -154,7 +160,11 @@ The model can output predictions in two formats:
 
 ### Token Format
 ```python
-[0, 0, 0, 1, 1, 0]  # 0: supported, 1: hallucinated
+[{
+    'token': str,       # The token
+    'pred': int,        # 0: supported, 1: hallucinated
+    'prob': float       # Model's confidence (0-1)
+}]
 ```
 
 ## Streamlit Demo
