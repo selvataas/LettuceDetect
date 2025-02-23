@@ -12,7 +12,7 @@ Our models are inspired from the [Luna](https://aclanthology.org/2025.coling-ind
 [![PyPI](https://img.shields.io/pypi/v/lettucedetect)](https://pypi.org/project/lettucedetect/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Hugging Face](https://img.shields.io/badge/🤗-Models-yellow.svg)](https://huggingface.co/KRLabsOrg)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/KRLabsOrg/LettuceDetect/blob/main/notebooks/demo.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Ubca5aMaBGdHtJ1rpqj3Ke9SLEr-PaDn?usp=sharing)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14856505.svg)](https://doi.org/10.5281/zenodo.14856505)
 
 ## Highlights
@@ -28,15 +28,11 @@ Our models are inspired from the [Luna](https://aclanthology.org/2025.coling-ind
 
 ### Features
 
-- Token-level hallucination detection
-- Both token and span-level predictions
-- Easy-to-use Python API
-- Few lines of code to integrate into your RAG system
-- ✨ **Token-level precision**: setect exact hallucinated spans
+- ✨ **Token-level precision**: detect exact hallucinated spans
 - 🚀 **Optimized for inference**: smaller model size and faster inference
 - 🧠 **4K context window** via ModernBERT
 - ⚖️ **MIT-licensed** models & code
-- 🤖 **HF Integration**: One-line model loading
+- 🤖 **HF Integration**: one-line model loading
 - 📦 **Easy to use python API**: can be downloaded from pip and few lines of code to integrate into your RAG system
 
 ### Installation
