@@ -1,5 +1,6 @@
 # LettuceDetect 🥬🔍
 
+
 <p align="center">
   <img src="https://github.com/KRLabsOrg/LettuceDetect/blob/main/assets/lettuce_detective.png?raw=true" alt="LettuceDetect Logo" width="400"/>
 </p>
@@ -7,6 +8,12 @@
 LettuceDetect is a lightweight and efficient tool for detecting hallucinations in Retrieval-Augmented Generation (RAG) systems. It identifies unsupported parts of an answer by comparing it to the provided context. The tool is trained and evaluated on the [RAGTruth](https://aclanthology.org/2024.acl-long.585/) dataset and leverages [ModernBERT](https://github.com/AnswerDotAI/ModernBERT) for long-context processing, making it ideal for tasks requiring extensive context windows.
 
 Our models are inspired from the [Luna](https://aclanthology.org/2025.coling-industry.34/) paper which is an encoder-based model and uses a similar token-level approach.
+
+[![PyPI](https://img.shields.io/pypi/v/lettucedetect)](https://pypi.org/project/lettucedetect/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Hugging Face](https://img.shields.io/badge/🤗-Models-yellow.svg)](https://huggingface.co/KRLabsOrg)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/KRLabsOrg/LettuceDetect/blob/main/notebooks/demo.ipynb)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14856505.svg)](https://doi.org/10.5281/zenodo.14856505)
 
 ## Highlights
 
@@ -24,8 +31,13 @@ Our models are inspired from the [Luna](https://aclanthology.org/2025.coling-ind
 - Token-level hallucination detection
 - Both token and span-level predictions
 - Easy-to-use Python API
-- Command-line interface for training and evaluation
 - Few lines of code to integrate into your RAG system
+- ✨ **Token-level precision**: setect exact hallucinated spans
+- 🚀 **Optimized for inference**: smaller model size and faster inference
+- 🧠 **4K context window** via ModernBERT
+- ⚖️ **MIT-licensed** models & code
+- 🤖 **HF Integration**: One-line model loading
+- 📦 **Easy to use python API**: can be downloaded from pip and few lines of code to integrate into your RAG system
 
 ### Installation
 
