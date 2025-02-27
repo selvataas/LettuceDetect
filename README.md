@@ -14,7 +14,7 @@ Our models are inspired from the [Luna](https://aclanthology.org/2025.coling-ind
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Hugging Face](https://img.shields.io/badge/🤗-Models-yellow.svg)](https://huggingface.co/KRLabsOrg)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Ubca5aMaBGdHtJ1rpqj3Ke9SLEr-PaDn?usp=sharing)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14856505.svg)](https://doi.org/10.5281/zenodo.14856505)
+[![arXiv](https://img.shields.io/badge/arXiv-2502.17125-b31b1b.svg)](https://arxiv.org/abs/2502.17125)
 
 ## Highlights
 
@@ -198,16 +198,16 @@ MIT License - see LICENSE file for details.
 
 ## Citation
 
-TODO: its coming soon until that:
+Please cite the following paper if you use LettuceDetect in your work:
 
 ```bibtex
-@software{Kovacs:2025,
-  author       = {Kovacs, Adam},
-  title        = {LettuceDetect},
-  month        = feb,
-  year         = 2025,
-  publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.14856505},
-  url          = {https://doi.org/10.5281/zenodo.14856505},
+@misc{Kovacs:2025,
+      title={LettuceDetect: A Hallucination Detection Framework for RAG Applications}, 
+      author={Ádám Kovács and Gábor Recski},
+      year={2025},
+      eprint={2502.17125},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2502.17125}, 
 }
 ```
