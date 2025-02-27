@@ -1,6 +1,6 @@
 import argparse
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
@@ -53,12 +53,10 @@ def load_data(input_dir: Path) -> tuple[list[dict], list[dict]]:
     :param input_dir: Path to the input directory.
     """
     responses = [
-        json.loads(line)
-        for line in (input_dir / "response.jsonl").read_text().splitlines()
+        json.loads(line) for line in (input_dir / "response.jsonl").read_text().splitlines()
     ]
     sources = [
-        json.loads(line)
-        for line in (input_dir / "source_info.jsonl").read_text().splitlines()
+        json.loads(line) for line in (input_dir / "source_info.jsonl").read_text().splitlines()
     ]
 
     return responses, sources
@@ -97,7 +95,6 @@ def main(input_dir: Path, output_dir: Path):
     :param input_dir: Path to the input directory.
     :param output_dir: Path to the output directory.
     """
-
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
 
@@ -110,9 +107,7 @@ def main(input_dir: Path, output_dir: Path):
         sample = create_sample(response, sources_by_id[response["source_id"]])
         rag_truth_data.samples.append(sample)
 
-    (output_dir / "ragtruth_data.json").write_text(
-        json.dumps(rag_truth_data.to_json(), indent=4)
-    )
+    (output_dir / "ragtruth_data.json").write_text(json.dumps(rag_truth_data.to_json(), indent=4))
 
 
 if __name__ == "__main__":

@@ -1,8 +1,10 @@
+import argparse
 import json
 from pathlib import Path
+
 import numpy as np
 from transformers import AutoTokenizer
-import argparse
+
 from lettucedetect.preprocess.preprocess_ragtruth import RagTruthData
 
 
@@ -33,9 +35,7 @@ def analyze_token_distribution(samples, tokenizer):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Analyze token distribution in the dataset"
-    )
+    parser = argparse.ArgumentParser(description="Analyze token distribution in the dataset")
     parser.add_argument(
         "--data_path",
         type=str,

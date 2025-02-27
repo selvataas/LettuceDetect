@@ -1,12 +1,16 @@
+import argparse
 import json
 from pathlib import Path
+
 import torch
+from torch.utils.data import DataLoader
 from transformers import (
-    AutoTokenizer,
     AutoModelForTokenClassification,
+    AutoTokenizer,
     DataCollatorForTokenClassification,
 )
-from torch.utils.data import DataLoader
+
+from lettucedetect.datasets.ragtruth import RagTruthDataset
 from lettucedetect.models.evaluator import (
     evaluate_detector_char_level,
     evaluate_model,
@@ -14,9 +18,7 @@ from lettucedetect.models.evaluator import (
     print_metrics,
 )
 from lettucedetect.models.inference import HallucinationDetector
-from lettucedetect.datasets.ragtruth import RagTruthDataset
 from lettucedetect.preprocess.preprocess_ragtruth import RagTruthData
-import argparse
 
 
 def evaluate_task_samples(
@@ -63,12 +65,8 @@ def evaluate_task_samples(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Evaluate a hallucination detection model"
-    )
-    parser.add_argument(
-        "--model_path", type=str, required=True, help="Path to the saved model"
-    )
+    parser = argparse.ArgumentParser(description="Evaluate a hallucination detection model")
+    parser.add_argument("--model_path", type=str, required=True, help="Path to the saved model")
     parser.add_argument(
         "--data_path",
         type=str,
@@ -93,9 +91,7 @@ def main():
     rag_truth_data = RagTruthData.from_json(json.loads(data_path.read_text()))
 
     # Filter test samples from the data
-    test_samples = [
-        sample for sample in rag_truth_data.samples if sample.split == "test"
-    ]
+    test_samples = [sample for sample in rag_truth_data.samples if sample.split == "test"]
 
     # group samples by task type
     task_type_map = {}
@@ -109,16 +105,12 @@ def main():
     # Setup model/detector based on evaluation type
     if args.evaluation_type in {"token_level", "example_level"}:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = AutoModelForTokenClassification.from_pretrained(args.model_path).to(
-            device
-        )
+        model = AutoModelForTokenClassification.from_pretrained(args.model_path).to(device)
         tokenizer = AutoTokenizer.from_pretrained(args.model_path)
         detector = None
     else:  # char_level
         model, tokenizer, device = None, None, None
-        detector = HallucinationDetector(
-            method="transformer", model_path=args.model_path
-        )
+        detector = HallucinationDetector(method="transformer", model_path=args.model_path)
 
     # Evaluate each task type separately
     for task_type, samples in task_type_map.items():

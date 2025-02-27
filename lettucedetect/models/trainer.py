@@ -1,11 +1,12 @@
 import time
 from datetime import timedelta
+
 import torch
 from torch.nn import Module
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
-from transformers import PreTrainedTokenizer
 from tqdm.auto import tqdm
+from transformers import PreTrainedTokenizer
 
 from lettucedetect.models.evaluator import evaluate_model, print_metrics
 
@@ -39,9 +40,7 @@ class Trainer:
         self.test_loader = test_loader
         self.epochs = epochs
         self.learning_rate = learning_rate
-        self.device = device or torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
+        self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.save_path = save_path
 
         self.optimizer: Optimizer = torch.optim.AdamW(
@@ -54,6 +53,7 @@ class Trainer:
 
         Returns:
             Best F1 score achieved during training
+
         """
         best_f1: float = 0
         start_time = time.time()
@@ -109,9 +109,7 @@ class Trainer:
                 best_f1 = metrics["hallucinated"]["f1"]
                 self.model.save_pretrained(self.save_path)
                 self.tokenizer.save_pretrained(self.save_path)
-                print(
-                    f"\n🎯 New best F1: {best_f1:.4f}, model saved at '{self.save_path}'!"
-                )
+                print(f"\n🎯 New best F1: {best_f1:.4f}, model saved at '{self.save_path}'!")
 
             print("-" * 50)
 

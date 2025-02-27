@@ -1,15 +1,16 @@
+import argparse
 import json
 from pathlib import Path
+
+from torch.utils.data import DataLoader
 from transformers import (
-    AutoTokenizer,
     AutoModelForTokenClassification,
+    AutoTokenizer,
     DataCollatorForTokenClassification,
 )
-from torch.utils.data import DataLoader
-import argparse
 
-from lettucedetect.models.trainer import Trainer
 from lettucedetect.datasets.ragtruth import RagTruthDataset
+from lettucedetect.models.trainer import Trainer
 from lettucedetect.preprocess.preprocess_ragtruth import RagTruthData
 
 
@@ -36,9 +37,7 @@ def parse_args():
     parser.add_argument(
         "--batch-size", type=int, default=4, help="Batch size for training and testing"
     )
-    parser.add_argument(
-        "--epochs", type=int, default=6, help="Number of training epochs"
-    )
+    parser.add_argument("--epochs", type=int, default=6, help="Number of training epochs")
     parser.add_argument(
         "--learning-rate", type=float, default=1e-5, help="Learning rate for training"
     )
@@ -50,17 +49,11 @@ def main():
     data_path = Path(args.data_path)
     rag_truth_data = RagTruthData.from_json(json.loads(data_path.read_text()))
 
-    train_samples = [
-        sample for sample in rag_truth_data.samples if sample.split == "train"
-    ]
-    test_samples = [
-        sample for sample in rag_truth_data.samples if sample.split == "test"
-    ]
+    train_samples = [sample for sample in rag_truth_data.samples if sample.split == "train"]
+    test_samples = [sample for sample in rag_truth_data.samples if sample.split == "test"]
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
-    data_collator = DataCollatorForTokenClassification(
-        tokenizer=tokenizer, label_pad_token_id=-100
-    )
+    data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer, label_pad_token_id=-100)
 
     train_dataset = RagTruthDataset(train_samples, tokenizer)
     test_dataset = RagTruthDataset(test_samples, tokenizer)
@@ -78,9 +71,7 @@ def main():
         collate_fn=data_collator,
     )
 
-    model = AutoModelForTokenClassification.from_pretrained(
-        args.model_name, num_labels=2
-    )
+    model = AutoModelForTokenClassification.from_pretrained(args.model_name, num_labels=2)
 
     trainer = Trainer(
         model=model,

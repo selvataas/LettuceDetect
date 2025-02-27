@@ -1,6 +1,8 @@
-import torch
-from transformers import AutoTokenizer, AutoModelForTokenClassification
 from abc import ABC, abstractmethod
+
+import torch
+from transformers import AutoModelForTokenClassification, AutoTokenizer
+
 from lettucedetect.datasets.ragtruth import RagTruthDataset
 
 PROMPT_QA = """
@@ -22,8 +24,7 @@ output:
 class BaseDetector(ABC):
     @abstractmethod
     def predict(self, context: str, answer: str, output_format: str = "tokens") -> list:
-        """
-        Given a context and an answer, returns predictions.
+        """Given a context and an answer, returns predictions.
 
         :param context: The context string.
         :param answer: The answer string.
@@ -34,21 +35,16 @@ class BaseDetector(ABC):
 
 class TransformerDetector(BaseDetector):
     def __init__(self, model_path: str, max_length: int = 4096, device=None, **kwargs):
-        """
-        Initialize the TransformerDetector.
+        """Initialize the TransformerDetector.
 
         :param model_path: The path to the model.
         :param max_length: The maximum length of the input sequence.
         :param device: The device to run the model on.
         """
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, **kwargs)
-        self.model = AutoModelForTokenClassification.from_pretrained(
-            model_path, **kwargs
-        )
+        self.model = AutoModelForTokenClassification.from_pretrained(model_path, **kwargs)
         self.max_length = max_length
-        self.device = device or torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
+        self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         self.model.eval()
 
@@ -69,9 +65,7 @@ class TransformerDetector(BaseDetector):
                 question=question, num_passages=len(context), context=context_str
             )
 
-    def _predict(
-        self, context: str, answer: str, output_format: str = "tokens"
-    ) -> list:
+    def _predict(self, context: str, answer: str, output_format: str = "tokens") -> list:
         """Predict hallucination tokens or spans from the provided context and answer.
 
         :param context: The context string.
@@ -79,10 +73,8 @@ class TransformerDetector(BaseDetector):
         :param output_format: "tokens" to return token-level predictions, or "spans" to return grouped spans.
         """
         # Use the shared tokenization logic from RagTruthDataset
-        encoding, labels, offsets, answer_start_token = (
-            RagTruthDataset.prepare_tokenized_input(
-                self.tokenizer, context, answer, self.max_length
-            )
+        encoding, labels, offsets, answer_start_token = RagTruthDataset.prepare_tokenized_input(
+            self.tokenizer, context, answer, self.max_length
         )
 
         # Create a label tensor: mark tokens before answer as -100 (ignored) and answer tokens as 0.
@@ -105,20 +97,14 @@ class TransformerDetector(BaseDetector):
         if output_format == "tokens":
             # return token probabilities for each token (with the tokens as well, if not -100)
             token_probs = []
-            input_ids = encoding["input_ids"][
-                0
-            ]  # Get the input_ids tensor from the encoding dict
-            for i, (token, pred, prob) in enumerate(
-                zip(input_ids, token_preds, probabilities)
-            ):
+            input_ids = encoding["input_ids"][0]  # Get the input_ids tensor from the encoding dict
+            for i, (token, pred, prob) in enumerate(zip(input_ids, token_preds, probabilities)):
                 if not labels[i].item() == -100:
                     token_probs.append(
                         {
                             "token": self.tokenizer.decode([token]),
                             "pred": pred.item(),
-                            "prob": prob[
-                                1
-                            ].item(),  # Get probability for class 1 (hallucination)
+                            "prob": prob[1].item(),  # Get probability for class 1 (hallucination)
                         }
                     )
             return token_probs
@@ -162,9 +148,7 @@ class TransformerDetector(BaseDetector):
                     else:
                         # Extend the current span.
                         current_span["end"] = rel_end
-                        current_span["confidence"] = max(
-                            current_span["confidence"], confidence
-                        )
+                        current_span["confidence"] = max(current_span["confidence"], confidence)
                 else:
                     # If we were building a hallucination span, finalize it.
                     if current_span is not None:
@@ -184,9 +168,7 @@ class TransformerDetector(BaseDetector):
         else:
             raise ValueError("Invalid output_format. Use 'tokens' or 'spans'.")
 
-    def predict_prompt(
-        self, prompt: str, answer: str, output_format: str = "tokens"
-    ) -> list:
+    def predict_prompt(self, prompt: str, answer: str, output_format: str = "tokens") -> list:
         """Predict hallucination tokens or spans from the provided prompt and answer.
 
         :param prompt: The prompt string.
@@ -216,8 +198,7 @@ class TransformerDetector(BaseDetector):
 
 class HallucinationDetector:
     def __init__(self, method: str = "transformer", **kwargs):
-        """
-        Facade for the hallucination detector.
+        """Facade for the hallucination detector.
 
         :param method: "transformer" for the model-based approach.
         :param kwargs: Additional keyword arguments passed to the underlying detector.
@@ -243,9 +224,7 @@ class HallucinationDetector:
         """
         return self.detector.predict(context, answer, question, output_format)
 
-    def predict_prompt(
-        self, prompt: str, answer: str, output_format: str = "tokens"
-    ) -> list:
+    def predict_prompt(self, prompt: str, answer: str, output_format: str = "tokens") -> list:
         """Predict hallucination tokens or spans from the provided prompt and answer.
 
         :param prompt: The prompt string.

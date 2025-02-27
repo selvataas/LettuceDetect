@@ -1,10 +1,11 @@
 import torch
+from sklearn.metrics import classification_report, precision_recall_fscore_support
 from torch.nn import Module
 from torch.utils.data import DataLoader
-from sklearn.metrics import precision_recall_fscore_support, classification_report
 from tqdm.auto import tqdm
-from lettucedetect.models.inference import HallucinationDetector
+
 from lettucedetect.datasets.ragtruth import RagTruthSample
+from lettucedetect.models.inference import HallucinationDetector
 
 
 def evaluate_model(
@@ -98,8 +99,7 @@ def evaluate_model_example_level(
     device: torch.device,
     verbose: bool = True,
 ) -> dict[str, dict[str, float]]:
-    """
-    Evaluate a model for hallucination detection at the example level.
+    """Evaluate a model for hallucination detection at the example level.
 
     For each example, if any token is marked as hallucinated (label=1),
     then the whole example is considered hallucinated. Otherwise, it is supported.
@@ -127,12 +127,8 @@ def evaluate_model_example_level(
             attention_mask = batch["attention_mask"].to(device)
 
             outputs = model(input_ids, attention_mask=attention_mask)
-            logits: torch.Tensor = (
-                outputs.logits
-            )  # Shape: [batch_size, seq_len, num_labels]
-            predictions: torch.Tensor = torch.argmax(
-                logits, dim=-1
-            )  # Shape: [batch_size, seq_len]
+            logits: torch.Tensor = outputs.logits  # Shape: [batch_size, seq_len, num_labels]
+            predictions: torch.Tensor = torch.argmax(logits, dim=-1)  # Shape: [batch_size, seq_len]
 
             # Process each example in the batch separately.
             for i in range(batch["labels"].size(0)):
@@ -191,8 +187,7 @@ def evaluate_model_example_level(
 def evaluate_detector_char_level(
     detector: HallucinationDetector, samples: list[RagTruthSample]
 ) -> dict[str, float]:
-    """
-    Evaluate the HallucinationDetector at the character level.
+    """Evaluate the HallucinationDetector at the character level.
 
     This function assumes that each sample is a dictionary containing:
       - "prompt": the prompt text.
@@ -219,9 +214,7 @@ def evaluate_detector_char_level(
         predicted_spans = detector.predict_prompt(prompt, answer, output_format="spans")
 
         # Compute total predicted span length for this sample.
-        sample_predicted_length = sum(
-            pred["end"] - pred["start"] for pred in predicted_spans
-        )
+        sample_predicted_length = sum(pred["end"] - pred["start"] for pred in predicted_spans)
         total_predicted += sample_predicted_length
 
         # Compute total gold span length once for this sample.
@@ -240,8 +233,6 @@ def evaluate_detector_char_level(
 
     precision = total_overlap / total_predicted if total_predicted > 0 else 0
     recall = total_overlap / total_gold if total_gold > 0 else 0
-    f1 = (
-        2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
-    )
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
 
     return {"precision": precision, "recall": recall, "f1": f1}
