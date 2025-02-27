@@ -44,11 +44,6 @@ python_files = "test_*_pytest.py"
 
 [tool.ruff]
 line-length = 100
-exclude = [
-    "scripts/demo.py",
-    "scripts/dataset_explorer.py",
-    "tests/"
-]
 
 [tool.ruff.lint]
 # https://docs.astral.sh/ruff/rules/
