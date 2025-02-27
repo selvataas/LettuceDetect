@@ -1,4 +1,4 @@
-# LettuceDetect: A Lightweight Hallucination Detector for RAG Systems
+# LettuceDetect: A Hallucination Detection Framework for RAG Applications
 
 <p align="center">
   <img src="https://github.com/KRLabsOrg/LettuceDetect/blob/main/assets/lettuce_detective.png?raw=true" alt="LettuceDetect Logo" width="400"/>
