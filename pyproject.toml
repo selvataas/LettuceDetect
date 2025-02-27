@@ -75,6 +75,3 @@ ignore = [
     "ANN204", # missing return type for __init__
     "PTH123", # path.open
 ]
-
-[tool.ruff.lint.mccabe]
-max-complexity = 14
