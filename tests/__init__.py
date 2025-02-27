@@ -1,1 +1,1 @@
-"""Tests for the lettucedetect package.""" 
+"""Tests for the lettucedetect package."""
