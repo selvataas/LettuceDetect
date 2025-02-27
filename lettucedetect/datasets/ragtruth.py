@@ -1,7 +1,8 @@
+import torch
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
+
 from lettucedetect.preprocess.preprocess_ragtruth import RagTruthSample
-import torch
 
 
 class RagTruthDataset(Dataset):
@@ -34,8 +35,7 @@ class RagTruthDataset(Dataset):
         answer: str,
         max_length: int = 4096,
     ) -> tuple[dict[str, torch.Tensor], list[int], torch.Tensor, int]:
-        """
-        Tokenizes the context and answer together, computes the answer start token index,
+        """Tokenizes the context and answer together, computes the answer start token index,
         and initializes a labels list (using -100 for context tokens and 0 for answer tokens).
 
         :param tokenizer: The tokenizer to use.
@@ -79,30 +79,22 @@ class RagTruthDataset(Dataset):
         sample = self.samples[idx]
 
         # Use the shared class method to perform tokenization and initial label setup.
-        encoding, labels, offsets, answer_start = (
-            RagTruthDataset.prepare_tokenized_input(
-                self.tokenizer, sample.prompt, sample.answer, self.max_length
-            )
+        encoding, labels, offsets, answer_start = RagTruthDataset.prepare_tokenized_input(
+            self.tokenizer, sample.prompt, sample.answer, self.max_length
         )
 
         # Adjust the token labels based on the annotated hallucination spans.
         # Compute the character offset of the first answer token.
-        answer_char_offset = (
-            offsets[answer_start][0] if answer_start < len(offsets) else None
-        )
+        answer_char_offset = offsets[answer_start][0] if answer_start < len(offsets) else None
 
         for i in range(answer_start, encoding["input_ids"].shape[1]):
             token_start, token_end = offsets[i]
             # Adjust token offsets relative to answer text.
             token_abs_start = (
-                token_start - answer_char_offset
-                if answer_char_offset is not None
-                else token_start
+                token_start - answer_char_offset if answer_char_offset is not None else token_start
             )
             token_abs_end = (
-                token_end - answer_char_offset
-                if answer_char_offset is not None
-                else token_end
+                token_end - answer_char_offset if answer_char_offset is not None else token_end
             )
 
             # Default label is 0 (supported content).

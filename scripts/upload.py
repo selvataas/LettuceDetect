@@ -1,5 +1,6 @@
-from transformers import AutoModelForTokenClassification, AutoTokenizer
 import argparse
+
+from transformers import AutoModelForTokenClassification, AutoTokenizer
 
 
 def main():

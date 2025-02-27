@@ -1,6 +1,7 @@
 import streamlit as st
-from lettucedetect.models.inference import HallucinationDetector
 import streamlit.components.v1 as components
+
+from lettucedetect.models.inference import HallucinationDetector
 
 
 def create_interactive_text(text: str, spans: list[dict[str, int | float]]) -> str:
@@ -10,15 +11,12 @@ def create_interactive_text(text: str, spans: list[dict[str, int | float]]) -> s
     :param spans: The spans to highlight.
     :return: The interactive text.
     """
-
     html_text = text
 
     for span in sorted(spans, key=lambda x: x["start"], reverse=True):
         span_text = text[span["start"] : span["end"]]
         highlighted_span = f'<span class="hallucination" title="Confidence: {span["confidence"]:.3f}">{span_text}</span>'
-        html_text = (
-            html_text[: span["start"]] + highlighted_span + html_text[span["end"] :]
-        )
+        html_text = html_text[: span["start"]] + highlighted_span + html_text[span["end"] :]
 
     return f"""
     <style>
