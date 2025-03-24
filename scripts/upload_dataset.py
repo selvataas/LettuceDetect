@@ -52,7 +52,7 @@ def convert_to_hf_dataset(hallucination_data: HallucinationData) -> DatasetDict:
     dataset_dict = DatasetDict(
         {
             "train": Dataset.from_list(train_samples),
-            "validation": Dataset.from_list(dev_samples),
+            "dev": Dataset.from_list(dev_samples),
             "test": Dataset.from_list(test_samples),
         }
     )
@@ -97,6 +97,11 @@ def upload_dataset(
     for split, dataset in dataset_dict.items():
         logger.info(f"Split '{split}': {len(dataset)} samples")
 
+        # Skip empty datasets
+        if len(dataset) == 0:
+            logger.info(f"  Split '{split}' is empty, skipping statistics")
+            continue
+
         # Count number of samples by language
         languages = dataset.unique("language")
         for lang in languages:
@@ -108,6 +113,12 @@ def upload_dataset(
         for ds in datasets:
             count = len([s for s in dataset if s["dataset"] == ds])
             logger.info(f"  Dataset '{ds}': {count} samples")
+
+    # Filter out empty splits before pushing to Hub
+    non_empty_splits = {k: v for k, v in dataset_dict.items() if len(v) > 0}
+    if len(non_empty_splits) != len(dataset_dict):
+        logger.info(f"Filtered out empty splits. Keeping {len(non_empty_splits)} non-empty splits.")
+        dataset_dict = DatasetDict(non_empty_splits)
 
     # Push to HF Hub if requested
     if push_to_hub:
