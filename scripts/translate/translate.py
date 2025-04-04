@@ -36,6 +36,7 @@ Translate the following prompt from {source_lang} to {target_lang}.
 - Translate only the given prompt.
 - Do not include any additional sentences summarizing or explaining the translation. 
 - Your output should be just the translated prompt, nothing else.
+- Structured JSON objects should be translated as well by translating both the keys and values.
 
 {source_lang}:
 ======START-PROMPT======
