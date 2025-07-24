@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument(
         "--ragtruth-path",
         type=str,
-        default="data/ragtruth/ragtruth_data.json",
+        default="scripts/data/translated/ragtruth_data_tr_veri_okunabilir.json",
         help="Path to the training data JSON file",
     )
     parser.add_argument(
@@ -52,7 +52,7 @@ def parse_args():
     parser.add_argument(
         "--model-name",
         type=str,
-        default="answerdotai/ModernBERT-base",
+        default="EuroBERT/EuroBERT-210m",
         help="Name or path of the pretrained model",
     )
     parser.add_argument(
@@ -68,6 +68,12 @@ def parse_args():
     parser.add_argument(
         "--learning-rate", type=float, default=1e-5, help="Learning rate for training"
     )
+    parser.add_argument(
+    "--device",
+    type=str,
+    default="cuda" if torch.cuda.is_available() else "cpu",
+    help="Device to use for training (e.g. 'cuda', 'cuda:0', or 'cpu')"
+)
     return parser.parse_args()
 
 
@@ -106,7 +112,7 @@ def main():
         print(f"Loading RAGBench data from {args.ragbench_path}")
         ragbench_path = Path(args.ragbench_path)
         ragbench_data = HallucinationData.from_json(json.loads(ragbench_path.read_text()))
-        ragbench_train_samples = [
+        ragbench_train_samples = [                                                                              
             sample for sample in ragbench_data.samples if sample.split == "train"
         ]
         ragbench_dev_samples = [sample for sample in ragbench_data.samples if sample.split == "dev"]
@@ -146,6 +152,7 @@ def main():
         epochs=args.epochs,
         learning_rate=args.learning_rate,
         save_path=args.output_dir,
+        device=torch.device(args.device)
     )
 
     trainer.train()

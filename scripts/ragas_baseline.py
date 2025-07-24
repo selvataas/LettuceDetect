@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from ragas.dataset_schema import SingleTurnSample
 from ragas.llms import LangchainLLMWrapper
 from ragas.metrics import Faithfulness
@@ -12,14 +12,14 @@ from lettucedetect.datasets.hallucination_dataset import HallucinationData, Hall
 
 
 def get_api_key() -> str:
-    """Get OpenAI client configured from environment variables.
+    """Get OpenRouter API key from environment variables.
 
-    :return: Open AI API Key
+    :return: OpenRouter API Key
     :raises ValueError: If API key is not set
     """
-    api_key = os.getenv("OPENAI_API_KEY") or "EMPTY"
+    api_key = os.getenv("OPENROUTER_API_KEY") or "EMPTY"
     if api_key == "EMPTY":
-        raise ValueError("Provide an OpenAI API key.")
+        raise ValueError("Provide an OpenRouter API key.")
     return api_key
 
 
@@ -56,9 +56,18 @@ def create_sample_baseline(sample, llm):
     answer = sample.answer
 
     ragas_metrics = evaluate_metrics(sample, llm)
+    
+    # Check if faithfulness is a valid number
+    faithfulness_value = ragas_metrics["faithfulness"]
+    if isinstance(faithfulness_value, str):
+        # If it's an error string, set to 0 (worst case)
+        faithfulness_value = 0.0
+    elif not isinstance(faithfulness_value, (int, float)):
+        faithfulness_value = 0.0
+    
     for threshold in [0.4, 0.5, 0.6, 0.7]:
         ragas_metrics[f"threshold_{threshold}"] = (
-            1 if ragas_metrics["faithfulness"] < threshold else 0
+            1 if faithfulness_value < threshold else 0
         )
     task_type = sample.task_type
     dataset = sample.dataset
@@ -102,7 +111,12 @@ def main(
     total_samples = len(hallucination_data_ragas.samples)
 
     llm = LangchainLLMWrapper(
-        ChatOpenAI(model="gpt-4o", openai_api_key=get_api_key(), temperature=0)
+        ChatOpenAI(
+            model="openai/o3-pro", 
+            openai_api_key=get_api_key(), 
+            openai_api_base="https://openrouter.ai/api/v1",
+            temperature=0.1
+        )
     )
 
     for i, sample in enumerate(samples, start=num_processed):

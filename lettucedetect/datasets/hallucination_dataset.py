@@ -14,7 +14,7 @@ class HallucinationSample:
     split: Literal["train", "dev", "test"]
     task_type: str
     dataset: Literal["ragtruth", "ragbench"]
-    language: Literal["en", "de"]
+    language: Literal["en", "tr"]
 
     def to_json(self) -> dict:
         return {

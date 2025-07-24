@@ -6,7 +6,7 @@ from pathlib import Path
 from string import Template
 
 # Type for supported languages
-Lang = str  # "en", "de", "fr", "es", "it", "pl", "cn"
+Lang = str  # "en", "de", "fr", "es", "it", "pl", "cn", "tr"
 
 LANG_TO_PASSAGE = {
     "en": "passage",
@@ -16,6 +16,7 @@ LANG_TO_PASSAGE = {
     "it": "brano",
     "pl": "fragment",
     "cn": "段落",
+    "tr": "paragraf",
 }
 
 # Full language names for each language code
@@ -27,6 +28,7 @@ LANG_TO_FULL_NAME = {
     "it": "Italian",
     "pl": "Polish",
     "cn": "Chinese",
+    "tr": "Turkish",
 }
 
 PROMPT_DIR = Path(__file__).parent.parent / "prompts"

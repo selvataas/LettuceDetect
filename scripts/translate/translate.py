@@ -91,20 +91,24 @@ def setup_logging(output_dir: Path) -> None:
     logger.addHandler(file_handler)
 
 
-def get_openai_client() -> OpenAI:
-    """Get OpenAI client configured from environment variables.
+# def get_openai_client() -> OpenAI:
+#     """Get OpenAI client configured from environment variables.
 
-    :return: Configured OpenAI client
-    :raises ValueError: If API key is not set
-    """
-    api_key = os.getenv("OPENAI_API_KEY") or "EMPTY"
-    base_url = os.getenv("OPENAI_BASE_URL") or "https://api.openai.com/v1"
+#     :return: Configured OpenAI client
+#     :raises ValueError: If API key is not set
+#     """
+#     api_key = os.getenv("OPENAI_API_KEY") or "EMPTY"
+#     base_url = os.getenv("OPENAI_BASE_URL") or "https://api.openai.com/v1"
 
-    return OpenAI(
-        api_key=api_key,
-        base_url=base_url,
-    )
+#     return OpenAI(
+#         api_key=api_key,
+#         base_url=base_url,
+#     )
 
+client = OpenAI(
+    base_url="http://10.96.44.4:8018/v1/",
+    api_key="nm-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXNlcjQiLCJpZCI6Ijk4NzIifQ.FsIWJf5qzRtCPjqPHk5QXEzShvMsnYojZ8NsDUiPMao"
+)
 
 @retry(
     retry=retry_if_exception_type((Exception)),
@@ -122,7 +126,7 @@ def translate_text(
     model: str,
     task_type: str,
     source_lang: str = "EN",
-    target_lang: str = "DE",
+    target_lang: str = "TR",
     prompt: bool = False,
 ) -> str:
     """Translate text using OpenAI API with automatic retries.
@@ -526,7 +530,7 @@ def main(
         return
 
     # Get OpenAI client
-    client = get_openai_client()
+    # client = get_openai_client()
 
     logger.info(f"Translating {dataset} from {source_lang} to {target_lang}")
     logger.info(f"Using model: {model}")
@@ -612,7 +616,7 @@ if __name__ == "__main__":
         "--output_dir", type=str, required=True, help="Directory to save output files"
     )
     parser.add_argument(
-        "--model", type=str, default="gpt-4o-mini", help="OpenAI model to use for translation"
+        "--model", type=str, default="google/gemma-3-27b-it", help="OpenAI model to use for translation"
     )
     parser.add_argument(
         "--source-lang",
@@ -623,7 +627,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--target-lang",
         type=str,
-        default="DE",
+        default="TR",
         help="Target language code (e.g., EN, DE, FR, etc.)",
     )
     parser.add_argument(

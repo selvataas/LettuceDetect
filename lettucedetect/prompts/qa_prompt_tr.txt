@@ -1,0 +1,7 @@
+Aşağıdaki soruyu kısaca yanıtlayın:
+${question}
+Şunu unutmayın: Yanıtınız yalnızca aşağıdaki ${num_passages} paragraflara dayanmalıdır:
+${context}
+Eğer paragraflarda soruyu yanıtlamak için gerekli bilgi yoksa, lütfen şu şekilde yanıtlayın:
+"Verilen paragraflara dayanarak cevap verilemiyor."
+Yanıt:

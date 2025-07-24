@@ -1,0 +1,10 @@
+              precision    recall  f1-score   support
+
+   Supported     0.6466    0.8145    0.7209      1757
+Hallucinated     0.3306    0.1707    0.2252       943
+
+    accuracy                         0.5896      2700
+   macro avg     0.4886    0.4926    0.4730      2700
+weighted avg     0.5363    0.5896    0.5478      2700
+
+AUROC: 0.4926

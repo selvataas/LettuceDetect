@@ -14,34 +14,68 @@ from lettucedetect.models.evaluator import (
 from lettucedetect.models.inference import HallucinationDetector
 
 
-def evaluate_task_samples_llm(
-    samples: list[HallucinationSample], evaluation_type: str, detector: HallucinationDetector
-):
-    """Evaluate the model on the samples.
+# def evaluate_task_samples_llm(
+#     samples: list[HallucinationSample], evaluation_type: str, detector: HallucinationDetector
+# ):
+#     """Evaluate the model on the samples.
 
-    :param samples: list of samples to evaluate
-    :param evaluation_type: evaluation type (example_level or char_level)
-    :param detector: detector to use
-    :return: metrics and hallucination data
-    """
-    print(f"\nEvaluating model on {len(samples)} samples")
+#     :param samples: list of samples to evaluate
+#     :param evaluation_type: evaluation type (example_level or char_level)
+#     :param detector: detector to use
+#     :return: metrics and hallucination data
+#     """
+#     print(f"\nEvaluating model on {len(samples)} samples")
+
+#     if evaluation_type == "example_level":
+#         print("\n---- Example-Level Span Evaluation ----")
+#         metrics = evaluate_detector_example_level_batch(detector, samples)
+#         print_metrics(metrics)
+#         return metrics
+#     elif evaluation_type == "char_level":
+#         print("\n---- Character-Level Span Evaluation ----")
+#         metrics = evaluate_detector_char_level(detector, samples)
+#         print(f"  Precision: {metrics['precision']:.4f}")
+#         print(f"  Recall: {metrics['recall']:.4f}")
+#         print(f"  F1: {metrics['f1']:.4f}")
+#         return metrics
+#     else:
+#         raise ValueError(
+#             "This evaluation type is not available for this method. Use either 'example_level' or 'char_level'."
+#         )
+def evaluate_task_samples_llm(
+    samples: list[HallucinationSample],
+    evaluation_type: str,
+    detector: HallucinationDetector,
+    file_handle=None,
+):
+    def log(msg: str):
+        print(msg)
+        if file_handle:
+            file_handle.write(msg + "\n")
+
+    log(f"\nEvaluating model on {len(samples)} samples")
 
     if evaluation_type == "example_level":
-        print("\n---- Example-Level Span Evaluation ----")
+        log("\n---- Example-Level Span Evaluation ----")
         metrics = evaluate_detector_example_level_batch(detector, samples)
+        if file_handle:
+            file_handle.write(json.dumps(metrics, indent=2) + "\n")
         print_metrics(metrics)
         return metrics
+
     elif evaluation_type == "char_level":
-        print("\n---- Character-Level Span Evaluation ----")
+        log("\n---- Character-Level Span Evaluation ----")
         metrics = evaluate_detector_char_level(detector, samples)
-        print(f"  Precision: {metrics['precision']:.4f}")
-        print(f"  Recall: {metrics['recall']:.4f}")
-        print(f"  F1: {metrics['f1']:.4f}")
+        log(f"  Precision: {metrics['precision']:.4f}")
+        log(f"  Recall: {metrics['recall']:.4f}")
+        log(f"  F1: {metrics['f1']:.4f}")
         return metrics
+
     else:
         raise ValueError(
             "This evaluation type is not available for this method. Use either 'example_level' or 'char_level'."
         )
+
 
 
 def load_data(data_path):
@@ -96,12 +130,16 @@ def main():
         default=None,
         help="Path to the cache file",
     )
+    parser.add_argument(
+    "--output_file",
+    type=str,
+    default=None,
+    help="Path to save the evaluation results (optional)",
+)
 
     args = parser.parse_args()
 
     test_samples, task_type_map = load_data(args.data_path)
-
-    print(f"\nEvaluating model on test samples: {len(test_samples)}")
 
     detector = HallucinationDetector(
         method="llm",
@@ -111,21 +149,66 @@ def main():
         zero_shot=args.zero_shot,
     )
 
-    # Evaluate the whole dataset
-    print("\nTask type: whole dataset")
-    evaluate_task_samples_llm(
-        test_samples,
-        args.evaluation_type,
-        detector=detector,
-    )
+    if args.output_file:
+        output_path = Path(args.output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        file_handle = output_path.open("w", encoding="utf-8")
+    else:
+        file_handle = None
 
-    for task_type, samples in task_type_map.items():
-        print(f"\nTask type: {task_type}")
+    try:
+        log = lambda m: (print(m), file_handle.write(m + "\n") if file_handle else None)
+
+        log(f"\nEvaluating model on test samples: {len(test_samples)}")
+
+        log("\nTask type: whole dataset")
         evaluate_task_samples_llm(
-            samples,
+            test_samples,
             args.evaluation_type,
             detector=detector,
+            file_handle=file_handle,
         )
+
+        for task_type, samples in task_type_map.items():
+            log(f"\nTask type: {task_type}")
+            evaluate_task_samples_llm(
+                samples,
+                args.evaluation_type,
+                detector=detector,
+                file_handle=file_handle,
+            )
+    finally:
+        if file_handle:
+            file_handle.close()
+    # args = parser.parse_args()
+
+    # test_samples, task_type_map = load_data(args.data_path)
+
+    # print(f"\nEvaluating model on test samples: {len(test_samples)}")
+
+    # detector = HallucinationDetector(
+    #     method="llm",
+    #     lang=args.lang,
+    #     cache_file=args.cache_path,
+    #     model=args.model,
+    #     zero_shot=args.zero_shot,
+    # )
+
+    # # Evaluate the whole dataset
+    # print("\nTask type: whole dataset")
+    # evaluate_task_samples_llm(
+    #     test_samples,
+    #     args.evaluation_type,
+    #     detector=detector,
+    # )
+
+    # for task_type, samples in task_type_map.items():
+    #     print(f"\nTask type: {task_type}")
+    #     evaluate_task_samples_llm(
+    #         samples,
+    #         args.evaluation_type,
+    #         detector=detector,
+    #     )
 
 
 if __name__ == "__main__":
